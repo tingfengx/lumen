@@ -14,14 +14,14 @@ if not os.path.exists("./fer2013"):
 
 def train_path(category, filename="*", processed=False):
     if processed:
-        return f"./fer2013/train_processed/{category}/{filename}.png"
-    return f"./fer2013/train/{category}/{filename}.png"
+        return f"./fer2013/train_processed/{category}/{filename}.jpg"
+    return f"./fer2013/train/{category}/{filename}.jpg"
 
 
 def test_path(category, filename="*", processed=False):
     if processed:
-        return f"./fer2013/test_processed/{category}/{filename}.png"
-    return f"./fer2013/test/{category}/{filename}.png"
+        return f"./fer2013/test_processed/{category}/{filename}.jpg"
+    return f"./fer2013/test/{category}/{filename}.jpg"
 
 
 emotions = [
