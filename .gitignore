@@ -237,3 +237,8 @@ pyrightconfig.json
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,macos,visualstudiocode
+
+### ignore datasets files
+datasets/fer2013/test_processed/
+datasets/fer2013/train_processed/
+datasets/fer2013/*.h5
