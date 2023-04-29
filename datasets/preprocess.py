@@ -1,10 +1,25 @@
-import matplotlib.pyplot as plt
-import matplotlib.image
-import numpy as np
+"""
+lumen/datasets/preprocess.py
+Author: Tingfeng Xia
+
+Preprocess FER2013 dataset: 
+-> Input: Original 48 x 48 pixels images
+<- Output: 24 x 48 (horizontal) pixels cropped around eyes
+
+Outputs are saved to a directory mocking the input directory (files
+inside folders with each folder representing one class). 
+
+MAKE SURE YOU RUN THIS BEFORE RUNNING `prepare.py`!
+"""
+
 import glob
-import imageio.v3 as iio
-import dlib
 import os
+
+import dlib
+import imageio.v3 as iio
+import matplotlib.image
+import matplotlib.pyplot as plt
+import numpy as np
 from tqdm import tqdm
 
 if not os.path.exists("./fer2013"):

@@ -1,8 +1,10 @@
 """
-Fer2013 Dataset class
+lumen/fer.py
+Author (modified by): Tingfeng Xia
 
-adapted and modified from 
-reference : https://github.com/WuJie1010/Facial-Expression-Recognition.Pytorch 
+Fer2013 Dataset class. 
+
+Reference : https://github.com/WuJie1010/Facial-Expression-Recognition.Pytorch 
 """
 
 
@@ -23,29 +25,29 @@ class FER2013(data.Dataset):
             and returns a transformed version. E.g, ``transforms.RandomCrop``
     """
 
-    def __init__(self, split='Training', transform=None):
+    def __init__(self, split='train', transform=None):
         self.transform = transform
         self.split = split  # training set or test set
-        self.data = h5py.File('./data/data.h5', 'r', driver='core')
-        # now load the picked numpy arrays
-        if self.split == 'Training':
-            self.train_data = self.data['Training_pixel']
-            self.train_labels = self.data['Training_label']
-            self.train_data = np.asarray(self.train_data)
-            self.train_data = self.train_data.reshape((-1, 20, 44))
 
-        elif self.split == 'validation':
-            self.PublicTest_data = self.data['PublicTest_pixel']
-            self.PublicTest_labels = self.data['PublicTest_label']
-            self.PublicTest_data = np.asarray(self.PublicTest_data)
-            self.PublicTest_data = self.PublicTest_data.reshape((-1, 20, 44))
+        # now load the picked numpy arrays
+        if self.split == "train":
+            self.data = h5py.File(
+                './datasets/fer2013/train_processed.h5', 'r', driver='core')
+            self.train_data = self.data['pixels']
+            self.train_labels = self.data['targets']
+            self.train_data = np.asarray(self.train_data)
+            self.train_data = self.train_data.reshape((-1, 24, 48))
+
+        elif self.split == "test":
+            self.data = h5py.File(
+                './datasets/fer2013/test_processed.h5', 'r', driver='core')
+            self.test_data = self.data['pixels']
+            self.test_labels = self.data['targets']
+            self.test_data = np.asarray(self.test_data)
+            self.test_data = self.test_data.reshape((-1, 24, 48))
 
         else:
-            self.PrivateTest_data = self.data['PrivateTest_pixel']
-            self.PrivateTest_labels = self.data['PrivateTest_label']
-            self.PrivateTest_data = np.asarray(self.PrivateTest_data)
-            self.PrivateTest_data = self.PrivateTest_data.reshape(
-                (-1, 20, 44))
+            print("[FER2013/__init__()] Something went wrong!")
 
     def __getitem__(self, index):
         """
@@ -55,26 +57,31 @@ class FER2013(data.Dataset):
         Returns:
             tuple: (image, target) where target is index of the target class.
         """
-        if self.split == 'Training':
+        if self.split == 'train':
             img, target = self.train_data[index], self.train_labels[index]
-        elif self.split == 'validation':
-            img, target = self.PublicTest_data[index], self.PublicTest_labels[index]
-        else:
-            img, target = self.PrivateTest_data[index], self.PrivateTest_labels[index]
+        elif self.split == 'test':
+            img, target = self.test_data[index], self.test_labels[index]
 
         # doing this so that it is consistent with all other datasets
         # to return a PIL Image
         img = img[:, :, np.newaxis]
         img = np.concatenate((img, img, img), axis=2)
         img = Image.fromarray(img)
-        if self.transform is not None:
+        if self.transform:
             img = self.transform(img)
         return img, target
 
     def __len__(self):
-        if self.split == 'Training':
+        if self.split == 'train':
             return len(self.train_data)
-        elif self.split == 'validation':
-            return len(self.PublicTest_data)
-        else:
-            return len(self.PrivateTest_data)
+        elif self.split == 'test':
+            return len(self.test_data)
+        print("[FER2013/__len__()] Something went wrong!")
+        return 0
+
+
+if __name__ == "__main__":
+    fer2013 = FER2013()
+    print(fer2013.train_data.shape)
+    fer2013 = FER2013(split="test")
+    print(fer2013.test_data.shape)

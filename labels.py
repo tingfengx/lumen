@@ -1,6 +1,10 @@
 """
+lumen/labels.py
+Author: Tingfeng Xia
+
 bi-directional look ups for emotions wrt numeric labeling
 """
+
 
 labels_word2num_ = {
     "angry": 0,

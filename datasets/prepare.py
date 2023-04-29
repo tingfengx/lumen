@@ -1,14 +1,28 @@
-import numpy as np
+"""
+lumen/datasets/prepare.py
+Author: Tingfeng Xia
+
+Prepare FER2013 dataset: 
+-> Input: 24 x 48 (horizontal) pixels cropped around eyes
+<- Output: H5 files gathering the pixels. 
+    -> Format: {
+        label: [[pixels np array]],
+        ...
+    }
+
+MAKE SURE YOU RUN `preprocess.py` BEFORE RUNNING THIS SCRIPT. 
+"""
+
+
 import glob
 import os
-import imageio.v3 as iio
-from tqdm import tqdm
-import labels
-import h5py
 
-"""
-prepare the store data into HDF (H5 file)
-"""
+import h5py
+import imageio.v3 as iio
+import numpy as np
+from tqdm import tqdm
+
+import labels
 
 
 def get_emotion_from_path(emotion_path):
@@ -21,15 +35,16 @@ def prepare(
 ):
     pixels = []
     targets = []
+
     for emotion_path in tqdm(glob.glob(path)):
         emotion = get_emotion_from_path(emotion_path)
         emotion = labels.labels_word2num(emotion)
+
         for file in glob.glob(emotion_path + "/*.jpg"):
             targets.append(emotion)
-            image = iio.imread(file)
-            pixels.append(
-                image
-            )
+            image = iio.imread(file, mode="L")
+            pixels.append(image)
+
     pixels = np.array(pixels)
     targets = np.array(targets)
 
