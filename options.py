@@ -7,12 +7,13 @@ Training options specification class.
 
 
 import torch
+import os
 
 
 class Opt():
     def __init__(
         self,
-        model="VGGSM",
+        model="VGGLIKE_SM",
         dataset="FER2013",
         bs=128,
         lr=.01,
@@ -34,20 +35,26 @@ class Opt():
         self.lr_decay_every = lr_decay_every
         self.total_epoch = total_epoch
         self.cut_size = cut_size
-        self.savepath = "_".join([self.dataset, self.model])
+        self.savepath = "results/" + "_".join([self.dataset, self.model])
+
+        # initialize results folder
+        if not os.path.exists("results"):
+            os.makedirs("results")
 
     def __str__(self):
         return f"""
-model = {self.model}
-dataset = {self.dataset}
-batchsize = {self.bs}
-learning rate = {self.lr}
-device = {"cuda" if self.usecuda else "cpu"}
-lr decay:
-    start = {self.lr_decay_start}
-    rate = {self.lr_decay_rate}
-    every = {self.lr_decay_every}
-total epoch = {self.total_epoch}
-cut size = {self.cut_size}
-model save path = {self.savepath}
+Options Specification:
+
+    model = {self.model}
+    dataset = {self.dataset}
+    batchsize = {self.bs}
+    learning rate = {self.lr}
+    device = {"cuda" if self.usecuda else "cpu"}
+    lr decay:
+        start = {self.lr_decay_start}
+        rate = {self.lr_decay_rate}
+        every = {self.lr_decay_every}
+    total epoch = {self.total_epoch}
+    cut size = {self.cut_size}
+    model save path = {self.savepath}
         """

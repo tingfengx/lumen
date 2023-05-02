@@ -19,7 +19,10 @@ from torch.autograd import Variable
 
 # four pooling layers
 cfg_vgg_like = {
-    'VGGSM': [64, 'M', 128, 'M', 256, 'M', 512, 512, 'M'],
+    'VGGLIKE_SM': [64, 'M', 128, 'M', 256, 'M', 512, 512, 'M'],
+    'VGGLIKE_MD': [64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M'],
+    'VGGLIKE_LG': [64, 64, 'M', 128, 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M'],
+    'VGGLIKE_TI': [64, 64, 'M', 128, 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M'],
 }
 
 # five pooling layers

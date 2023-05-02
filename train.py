@@ -22,6 +22,18 @@ import utils
 import random
 from options import Opt
 
+parser = argparse.ArgumentParser(
+    prog='lumen trainer',
+    description='training for lumen: emotion classification with eye area only'
+)
+
+parser.add_argument(
+    '--model', type=str, default="VGGLIKE_SM"
+)
+
+args = parser.parse_args()
+
+
 # for reproducability. set on first import
 random.seed(405728300)
 np.random.seed(405728300)
@@ -32,7 +44,7 @@ best_test_acc = 0  # best test accuracy
 best_test_acc_epoch = 0
 
 # initialize options (load from arguments)
-opt = Opt()
+opt = Opt(model=args.model)
 print(opt)
 
 # initialize the train and test loaders
@@ -55,7 +67,7 @@ optimizer = optim.SGD(
 
 
 def train(epoch):
-    print('\n---\nEpoch: %d' % epoch)
+    print('\n---\nEpoch: %d' % (epoch + 1))
     net.train()
     train_loss = 0
     correct = 0
@@ -89,9 +101,7 @@ def train(epoch):
                            % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
 
     train_acc = 100.*correct/total
-    print(f"Epoch: {epoch}, Trainning Accuracy: {train_acc:.5f}")
-
-    return train_loss
+    return train_acc, train_loss
 
 
 def test(epoch):
@@ -141,14 +151,25 @@ def test(epoch):
         best_test_acc = test_acc
         best_test_acc_epoch = epoch
 
-    return test_loss
+    return test_acc, test_loss
 
 
 if __name__ == "__main__":
     # training loop
-    for epoch in range(opt.total_epoch):
-        train(epoch)
-        test(epoch)
+    train_losses = []
+    train_accs = []
+    test_losses = []
+    test_accs = []
 
-    print("best_validation_acc: %0.3f" % best_test_acc)
-    print("best_validation_acc_epoch: %d" % best_test_acc_epoch)
+    for epoch in range(opt.total_epoch):
+        train_acc, train_loss = train(epoch)
+        test_acc, test_loss = test(epoch)
+
+    print("best_test_acc: %0.3f" % best_test_acc)
+    print("best_test_acc_epoch: %d" % best_test_acc_epoch)
+
+    # save train and test losses
+    np.save(os.path.join(opt.savepath, 'train_losses.npy'), np.array(train_losses))
+    np.save(os.path.join(opt.savepath, 'test_losses.npy'), np.array(test_losses))
+    np.save(os.path.join(opt.savepath, 'train_accs.npy'), np.array(train_accs))
+    np.save(os.path.join(opt.savepath, 'test_accs.npy'), np.array(test_accs))

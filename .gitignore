@@ -242,3 +242,7 @@ pyrightconfig.json
 datasets/fer2013/test_processed/
 datasets/fer2013/train_processed/
 datasets/fer2013/*.h5
+
+
+#models
+*.t7
