@@ -18,6 +18,7 @@ from options import Opt
 import torch
 from fer import FER2013
 from models.vgg import VGGLIKE, VGG
+from models.sevgg import SEVGG
 
 
 def initialize_train_loader_with_opt(opt):
@@ -57,4 +58,6 @@ def initialize_model_with_opt(opt: Opt):
         return VGGLIKE(opt.model)
     elif opt.model.startswith("VGG"):
         return VGG(opt.model)
+    elif opt.model.startswith("SEVGG"):
+        return SEVGG(opt.model)
     raise NotImplementedError()
