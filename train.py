@@ -19,7 +19,6 @@ from torch.autograd import Variable
 
 import loaders
 import utils
-import random
 from options import Opt
 
 parser = argparse.ArgumentParser(
@@ -33,11 +32,6 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-
-# for reproducability. set on first import
-random.seed(405728300)
-np.random.seed(405728300)
-torch.manual_seed(405728300)
 
 # keep: best results
 best_test_acc = 0  # best test accuracy
@@ -62,7 +56,7 @@ optimizer = optim.SGD(
     net.parameters(),
     lr=opt.lr,
     momentum=.9,
-    weight_decay=5e-4
+    weight_decay=5e-3
 )
 
 
@@ -169,7 +163,8 @@ if __name__ == "__main__":
     print("best_test_acc_epoch: %d" % best_test_acc_epoch)
 
     # save train and test losses
-    np.save(os.path.join(opt.savepath, 'train_losses.npy'), np.array(train_losses))
+    np.save(os.path.join(opt.savepath, 'train_losses.npy'),
+            np.array(train_losses))
     np.save(os.path.join(opt.savepath, 'test_losses.npy'), np.array(test_losses))
     np.save(os.path.join(opt.savepath, 'train_accs.npy'), np.array(train_accs))
     np.save(os.path.join(opt.savepath, 'test_accs.npy'), np.array(test_accs))

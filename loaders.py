@@ -18,7 +18,8 @@ from options import Opt
 import torch
 from fer import FER2013
 from models.vgg import VGGLIKE, VGG
-from models.sevgg import SEVGG
+from models.sevgg import SEVGG16, SEVGG8, SEVGG32
+from models.sasaattn import SASAATTN
 
 
 def initialize_train_loader_with_opt(opt):
@@ -58,6 +59,12 @@ def initialize_model_with_opt(opt: Opt):
         return VGGLIKE(opt.model)
     elif opt.model.startswith("VGG"):
         return VGG(opt.model)
-    elif opt.model.startswith("SEVGG"):
-        return SEVGG(opt.model)
+    elif opt.model.startswith("SEVGG8"):
+        return SEVGG8(opt.model)
+    elif opt.model.startswith("SEVGG16"):
+        return SEVGG16(opt.model)
+    elif opt.model.startswith("SEVGG32"):
+        return SEVGG32(opt.model)
+    elif opt.model.startswith("SASA"):
+        return SASAATTN(opt.model)
     raise NotImplementedError()
