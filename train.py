@@ -30,6 +30,10 @@ parser.add_argument(
     '--model', type=str, default="VGGLIKE_SM"
 )
 
+parser.add_argument(
+    '--wd', type=float, default=5e-3, help='weight decay factor'
+)
+
 args = parser.parse_args()
 
 
@@ -50,13 +54,14 @@ net = loaders.initialize_model_with_opt(opt)
 if opt.usecuda:
     net.cuda()
 
+
 # initialize loss and optimizer
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(
     net.parameters(),
     lr=opt.lr,
     momentum=.9,
-    weight_decay=5e-3
+    weight_decay=args.wd
 )
 
 

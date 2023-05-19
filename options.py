@@ -21,7 +21,7 @@ class Opt():
         lr_decay_rate=0.9,
         lr_decay_start=40,
         lr_decay_every=5,
-        total_epoch=200,
+        total_epoch=250,
         # random cut
         cut_size=(20, 44),
     ):

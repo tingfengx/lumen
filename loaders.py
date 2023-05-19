@@ -19,7 +19,7 @@ import torch
 from fer import FER2013
 from models.vgg import VGGLIKE, VGG
 from models.sevgg import SEVGG16, SEVGG8, SEVGG32
-from models.sasaattn import SASAATTN
+from models.bamvgg import BAMVGG
 
 
 def initialize_train_loader_with_opt(opt):
@@ -65,6 +65,11 @@ def initialize_model_with_opt(opt: Opt):
         return SEVGG16(opt.model)
     elif opt.model.startswith("SEVGG32"):
         return SEVGG32(opt.model)
-    elif opt.model.startswith("SASA"):
-        return SASAATTN(opt.model)
+    elif opt.model.startswith("BAMVGG"):
+        if opt.model.count("_") == 1:
+            return BAMVGG(opt.model)
+        else:
+            model_, size_, reduction_ratio, dilation = opt.model.split("_")
+            reduction_ratio, dilation = int(reduction_ratio), int(dilation)
+            return BAMVGG("_".join([model_, size_]), reduction_ratio=reduction_ratio, dilation=dilation)
     raise NotImplementedError()

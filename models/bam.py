@@ -1,71 +1,85 @@
 """
-Reference: https://github.com/Jongchan/attention-module/blob/master/MODELS/bam.py
+Reference: https://github.com/asdf2kr/BAM-CBAM-pytorch/tree/master/Models
 """
 
 import torch
-import math
 import torch.nn as nn
-import torch.nn.functional as F
 
 
-class Flatten(nn.Module):
-    def forward(self, x):
-        return x.view(x.size(0), -1)
+def conv1x1(in_channels, out_channels, stride=1):
+    ''' 1x1 convolution '''
+    return nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride, bias=False)
 
 
-class ChannelGate(nn.Module):
-    def __init__(self, gate_channel, reduction_ratio=16, num_layers=1):
-        super(ChannelGate, self).__init__()
-        # self.gate_activation = gate_activation
-        self.gate_c = nn.Sequential()
-        self.gate_c.add_module('flatten', Flatten())
-        gate_channels = [gate_channel]
-        gate_channels += [gate_channel // reduction_ratio] * num_layers
-        gate_channels += [gate_channel]
-        for i in range(len(gate_channels) - 2):
-            self.gate_c.add_module('gate_c_fc_%d' % i, nn.Linear(
-                gate_channels[i], gate_channels[i+1]))
-            self.gate_c.add_module('gate_c_bn_%d' % (
-                i+1), nn.BatchNorm1d(gate_channels[i+1]))
-            self.gate_c.add_module('gate_c_relu_%d' % (i+1), nn.ReLU())
-        self.gate_c.add_module('gate_c_fc_final', nn.Linear(
-            gate_channels[-2], gate_channels[-1]))
-
-    def forward(self, in_tensor):
-        avg_pool = F.avg_pool2d(
-            in_tensor, in_tensor.size(2), stride=in_tensor.size(2))
-        return self.gate_c(avg_pool).unsqueeze(2).unsqueeze(3).expand_as(in_tensor)
+def conv3x3(in_channels, out_channels, stride=1, padding=1, dilation=1):
+    ''' 3x3 convolution '''
+    return nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=padding, dilation=dilation, bias=False)
 
 
-class SpatialGate(nn.Module):
-    def __init__(self, gate_channel, reduction_ratio=16, dilation_conv_num=2, dilation_val=4):
-        super(SpatialGate, self).__init__()
-        self.gate_s = nn.Sequential()
-        self.gate_s.add_module('gate_s_conv_reduce0', nn.Conv2d(
-            gate_channel, gate_channel//reduction_ratio, kernel_size=1))
-        self.gate_s.add_module('gate_s_bn_reduce0',	nn.BatchNorm2d(
-            gate_channel//reduction_ratio))
-        self.gate_s.add_module('gate_s_relu_reduce0', nn.ReLU())
-        for i in range(dilation_conv_num):
-            self.gate_s.add_module('gate_s_conv_di_%d' % i, nn.Conv2d(gate_channel//reduction_ratio, gate_channel//reduction_ratio, kernel_size=3,
-                                                                      padding=dilation_val, dilation=dilation_val))
-            self.gate_s.add_module('gate_s_bn_di_%d' % i, nn.BatchNorm2d(
-                gate_channel//reduction_ratio))
-            self.gate_s.add_module('gate_s_relu_di_%d' % i, nn.ReLU())
-        self.gate_s.add_module('gate_s_conv_final', nn.Conv2d(
-            gate_channel//reduction_ratio, 1, kernel_size=1))
-
-    def forward(self, in_tensor):
-        return self.gate_s(in_tensor).expand_as(in_tensor)
+def conv7x7(in_channels, out_channels, stride=1, padding=3, dilation=1):
+    ''' 7x7 convolution '''
+    return nn.Conv2d(in_channels, out_channels, kernel_size=7, stride=stride, padding=padding, dilation=dilation, bias=False)
 
 
 class BAM(nn.Module):
-    def __init__(self, gate_channel):
+    def __init__(self, in_channel, reduction_ratio=4, dilation=2):
         super(BAM, self).__init__()
-        self.channel_att = ChannelGate(gate_channel)
-        self.spatial_att = SpatialGate(gate_channel)
+        self.hid_channel = in_channel // reduction_ratio
+        self.dilation = dilation
+        self.globalAvgPool = nn.AdaptiveAvgPool2d(1)
+        self.relu = nn.ReLU(inplace=True)
+        self.sigmoid = nn.Sigmoid()
 
-    def forward(self, in_tensor):
-        att = 1 + F.sigmoid(self.channel_att(in_tensor)
-                            * self.spatial_att(in_tensor))
-        return att * in_tensor
+        self.fc1 = nn.Linear(in_features=in_channel,
+                             out_features=self.hid_channel)
+        self.bn1_1d = nn.BatchNorm1d(self.hid_channel)
+        self.fc2 = nn.Linear(in_features=self.hid_channel,
+                             out_features=in_channel)
+        self.bn2_1d = nn.BatchNorm1d(in_channel)
+
+        self.conv1 = conv1x1(in_channel, self.hid_channel)
+        self.bn1_2d = nn.BatchNorm2d(self.hid_channel)
+        self.conv2 = conv3x3(self.hid_channel, self.hid_channel,
+                             stride=1, padding=self.dilation, dilation=self.dilation)
+        self.bn2_2d = nn.BatchNorm2d(self.hid_channel)
+        self.conv3 = conv3x3(self.hid_channel, self.hid_channel,
+                             stride=1, padding=self.dilation, dilation=self.dilation)
+        self.bn3_2d = nn.BatchNorm2d(self.hid_channel)
+        self.conv4 = conv1x1(self.hid_channel, 1)
+        self.bn4_2d = nn.BatchNorm2d(1)
+
+    def forward(self, x):
+        # Channel attention
+        Mc = self.globalAvgPool(x)
+        Mc = Mc.view(Mc.size(0), -1)
+
+        Mc = self.fc1(Mc)
+        Mc = self.bn1_1d(Mc)
+        Mc = self.relu(Mc)
+
+        Mc = self.fc2(Mc)
+        Mc = self.bn2_1d(Mc)
+        Mc = self.relu(Mc)
+
+        Mc = Mc.view(Mc.size(0), Mc.size(1), 1, 1)
+
+        # Spatial attention
+        Ms = self.conv1(x)
+        Ms = self.bn1_2d(Ms)
+        Ms = self.relu(Ms)
+
+        Ms = self.conv2(Ms)
+        Ms = self.bn2_2d(Ms)
+        Ms = self.relu(Ms)
+
+        Ms = self.conv3(Ms)
+        Ms = self.bn3_2d(Ms)
+        Ms = self.relu(Ms)
+
+        Ms = self.conv4(Ms)
+        Ms = self.bn4_2d(Ms)
+        Ms = self.relu(Ms)
+
+        Ms = Ms.view(x.size(0), 1, x.size(2), x.size(3))
+        Mf = 1 + self.sigmoid(Mc * Ms)
+        return x * Mf
