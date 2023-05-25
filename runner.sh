@@ -25,7 +25,7 @@
 
 # python train.py --model BAMVGG_SM_2_2
 # python train.py --model BAMVGG_MD_2_2
-python train.py --model BAMVGG_LG_2_2
-python train.py --model BAMVGG_TI_2_2
+# python train.py --model BAMVGG_LG_2_2
+# python train.py --model BAMVGG_TI_2_2
 
 python summarize.py
