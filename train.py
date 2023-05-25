@@ -34,6 +34,10 @@ parser.add_argument(
     '--wd', type=float, default=5e-3, help='weight decay factor'
 )
 
+parser.add_argument(
+    '--dosave', type=bool, default=False, help='if save train test acc and loss curves'
+)
+
 args = parser.parse_args()
 
 
@@ -164,12 +168,19 @@ if __name__ == "__main__":
         train_acc, train_loss = train(epoch)
         test_acc, test_loss = test(epoch)
 
+        if args.dosave:
+            train_accs.append(train_acc)
+            train_losses.append(train_losses)
+            test_accs.append(test_acc)
+            test_losses.append(test_loss)
+
     print("best_test_acc: %0.3f" % best_test_acc)
     print("best_test_acc_epoch: %d" % best_test_acc_epoch)
 
     # save train and test losses
-    np.save(os.path.join(opt.savepath, 'train_losses.npy'),
-            np.array(train_losses))
-    np.save(os.path.join(opt.savepath, 'test_losses.npy'), np.array(test_losses))
-    np.save(os.path.join(opt.savepath, 'train_accs.npy'), np.array(train_accs))
-    np.save(os.path.join(opt.savepath, 'test_accs.npy'), np.array(test_accs))
+    if args.dosave:
+        np.save(os.path.join(opt.savepath, 'train_losses.npy'),
+                np.array(train_losses))
+        np.save(os.path.join(opt.savepath, 'test_losses.npy'), np.array(test_losses))
+        np.save(os.path.join(opt.savepath, 'train_accs.npy'), np.array(train_accs))
+        np.save(os.path.join(opt.savepath, 'test_accs.npy'), np.array(test_accs))
